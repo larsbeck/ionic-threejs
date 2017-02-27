@@ -20,26 +20,32 @@ export class SceneGraph {
   }
 
   ngAfterViewInit() {
+    var mixers = [];
+    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+    this.camera.position.z = 4;
     this.scene = new THREE.Scene();
- 
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-    this.camera.position.z = 1000;
- 
-    let geometry;
-    switch(this.geometry) {
-      case 'box': geometry = new THREE.BoxGeometry(500, 500, 500); break;
-      case 'cylinder': geometry = new THREE.CylinderGeometry(200, 200, 600); break;
-      default:
-      case 'sphere': geometry = new THREE.SphereGeometry(400);
-    }
+    var ambient = new THREE.AmbientLight(0x444444);
+    this.scene.add(ambient);
+    var directionalLight = new THREE.DirectionalLight(0xffeedd);
+    directionalLight.position.set(0, 0, 1).normalize();
+    this.scene.add(directionalLight);
 
-    let material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
- 
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.scene.add(this.mesh);
- 
+    // BEGIN Clara.io JSON loader code
+    var objectLoader = new THREE.ObjectLoader();
+    objectLoader.load("teapot-claraio.json", obj => {
+      this.scene.add(obj);
+    });
+    // END Clara.io JSON loader code
     this.renderer = new THREE.WebGLRenderer();
-    this.sceneGraphElement.nativeElement.childNodes[0].appendChild(this.renderer.domElement);
+    // this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // this.container.appendChild(this.renderer.domElement);
+    this.animate();
+  }
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.render();
   }
 
   startAnimation() {
@@ -55,10 +61,10 @@ export class SceneGraph {
   }
 
   render() {
-    this.mesh.rotation.x += 0.05;
-    this.mesh.rotation.y += 0.05;
+    this.camera.position.x=100;
+    this.camera.position.y=100;
+    this.camera.lookAt(this.scene.position);
     this.renderer.render(this.scene, this.camera);
-    if (this.animating) { requestAnimationFrame(() => { this.render() }); };
   }
   
 }
